@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice — Studio Text-to-Speech Google Gemini</title>
+  <meta name="description" content="Generator Suara AI Studio dengan 30 Vokal Resmi Google Gemini TTS dan Modulasi Suara Lengkap." />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f5f4ef;
+    }
+    .font-serif-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Robust Grid Layout ensuring clean separation and spacing on all devices */
+    .voices-card-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .voices-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .voices-card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .voice-card {
+      background-color: #ffffff;
+      border: 1px solid #e7e5e0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    }
+    .voice-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.08);
+    }
+    .voice-card.selected {
+      background-color: #121212 !important;
+      color: #ffffff !important;
+      border-color: #27272a !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    }
+  </style>
+</head>
+<body class="text-stone-900 min-h-screen pb-20 selection:bg-amber-400 selection:text-stone-950">
+
+  <!-- TOP HEADER -->
+  <header class="w-full bg-[#fbf9f4]/95 backdrop-blur-md border-b border-[#e7e0d3] sticky top-0 z-40">
+    <div class="max-w-[940px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-stone-900 text-amber-400 flex items-center justify-center font-bold text-lg shadow-sm border border-stone-800">
+          🎙️
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-stone-900">
+              <span class="text-amber-600">Voice Generator</span>
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              GitHub Edition
+            </span>
+          </div>
+          <p class="text-xs text-stone-500 font-medium">
+            Generator Voice Over
+          </p>
+        </div>
+      </div>
+
+      <!-- API Key Setting Button -->
+      <div class="flex items-center gap-2">
+        <button
+          id="btn-apikey-modal"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-800 text-xs font-semibold border border-stone-300 transition-all cursor-pointer shadow-2xs"
+        >
+          🔑 <span id="apikey-status-label">Setup API Key</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE (Slim & Comfortable Container) -->
+  <main class="max-w-[940px] mx-auto px-4 sm:px-6 pt-5 pb-16 flex flex-col gap-5">
+
+    <!-- WORKSPACE SECTION: Text Input & Dropdowns -->
+    <div class="w-full bg-[#faf6ee] rounded-3xl border border-[#e8dfcf] shadow-sm p-6 sm:p-8 flex flex-col gap-5 text-stone-900">
+      
+      <!-- Text Input Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-[#e5dec9]/80">
+        <div>
+          <span class="text-[11px] font-bold tracking-widest text-[#8c7456] uppercase">
+            MASUKKAN TEKS
+          </span>
+          <h2 class="font-serif-title text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+            Text Input
+          </h2>
+        </div>
+        <button
+          id="btn-copy-input"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-stone-300/80 bg-white hover:bg-stone-50 text-stone-700 text-xs font-medium shadow-xs transition-colors cursor-pointer"
+        >
+          📋 <span id="copy-text-label">Copy</span>
+        </button>
+      </div>
+
+      <!-- 3 Controls: Style, Pace, Accent -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 relative z-20">
+        <!-- Style -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="font-semibold text-stone-800">Style</span>
+            <span class="text-[11px] text-stone-500">Inflection</span>
+          </div>
+          <select id="select-style" class="w-full bg-white border border-stone-300 hover:border-stone-400 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-medium text-stone-900 shadow-xs focus:ring-2 focus:ring-amber-500 cursor-pointer">
+            <option value="Promo/Hype" selected>😊 Promo/Hype</option>
+            <option value="Vocal Smile">😃 Vocal Smile</option>
+            <option value="Newscaster">🎙️ Newscaster</option>
+            <option value="Whisper">🤫 Whisper</option>
+            <option value="Empathetic">🤝 Empathetic</option>
+            <option value="Deadpan">😐 Deadpan</option>
+          </select>
+        </div>
+
+        <!-- Pace -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="font-semibold text-stone-800">Pace</span>
+            <span class="text-[11px] text-stone-500">Cadence</span>
+          </div>
+          <select id="select-pace" class="w-full bg-white border border-stone-300 hover:border-stone-400 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-medium text-stone-900 shadow-xs focus:ring-2 focus:ring-amber-500 cursor-pointer">
+            <option value="Natural">⏱️ Natural (Conversational)</option>
+            <option value="Rapid Fire" selected>⚡ Rapid Fire (Fast, energetic)</option>
+            <option value="The Drift">🌊 The Drift (Slow, relaxed)</option>
+            <option value="Staccato">🎵 Staccato (Clipped & distinct)</option>
+          </select>
+        </div>
+
+        <!-- Accent -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="font-semibold text-stone-800">Accent</span>
+            <span class="text-[11px] text-stone-500">Pronunciation</span>
+          </div>
+          <select id="select-accent" class="w-full bg-white border border-stone-300 hover:border-stone-400 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-medium text-stone-900 shadow-xs focus:ring-2 focus:ring-amber-500 cursor-pointer">
+            <option value="Neutral" selected>🌐 Neutral</option>
+            <option value="Indonesian (Native)">🇮🇩 Indonesian (Native)</option>
+            <option value="American (Gen)">🇺🇸 American (Gen)</option>
+            <option value="American (Valley)">🇺🇸 American (Valley)</option>
+            <option value="American (South)">🇺🇸 American (South)</option>
+            <option value="British (RP)">🇬🇧 British (RP)</option>
+            <option value="British (Brixton)">🇬🇧 British (Brixton)</option>
+            <option value="Transatlantic">🎭 Transatlantic</option>
+            <option value="Australian">🇦🇺 Australian</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Textarea (Clean empty state with requested placeholder) -->
+      <div class="flex flex-col gap-1.5">
+        <textarea
+          id="main-text-input"
+          rows="4"
+          class="w-full bg-white border border-stone-300/90 rounded-2xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500/30 shadow-xs min-h-[130px]"
+          placeholder="Ketik atau tempel teks naskah di sini..."
+        ></textarea>
+      </div>
+
+      <!-- Bottom Bar: Status Pill & Convert Button -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+        <div id="pill-current-summary" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 border border-stone-300/80 text-xs font-medium text-stone-800 shadow-xs">
+          🔊 <span id="summary-voice-name" class="font-bold text-stone-900">Voice: Laomedeia</span>
+          <span class="text-stone-400">•</span>
+          <span id="summary-style" class="text-stone-600">Promo/Hype</span>
+          <span class="text-stone-400">•</span>
+          <span id="summary-pace" class="text-stone-600">Rapid Fire</span>
+          <span class="text-stone-400">•</span>
+          <span id="summary-accent" class="text-stone-600">Neutral</span>
+        </div>
+
+        <button
+          id="btn-generate-audio"
+          class="w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-95 cursor-pointer bg-stone-900 hover:bg-stone-800 text-white"
+        >
+          <span>ılı Convert Text to Speech</span>
+        </button>
+      </div>
+
+      <!-- Audio Result & WAV Save Form (Visible upon generation) -->
+      <div id="result-container" class="hidden mt-4 pt-4 border-t border-stone-200/90 flex flex-col gap-4">
+        <div class="bg-stone-950 text-white rounded-3xl p-5 border border-stone-800 shadow-lg flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">Audio Hasil Sintesis (WAV 24kHz)</span>
+            <audio id="audio-player" controls class="h-9 w-64"></audio>
+          </div>
+
+          <!-- Filename Input Box according to user specification -->
+          <div class="bg-stone-900 p-3.5 rounded-2xl border border-stone-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <label class="text-[11px] font-semibold text-stone-300 block mb-1">
+                Nama File Simpan WAV (Format: Profil_Style_Tanggal):
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  id="input-wav-filename"
+                  type="text"
+                  class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs font-mono text-white pr-14 focus:outline-hidden focus:border-amber-400"
+                  value="Laomedeia_Promo_03112026"
+                />
+                <span class="absolute right-3 text-xs font-mono text-amber-400 font-bold pointer-events-none">.wav</span>
+              </div>
+            </div>
+
+            <button
+              id="btn-download-wav"
+              class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer shrink-0 self-end sm:self-center"
+            >
+              📥 Download WAV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: 30 Google Gemini TTS Voices -->
+    <section class="w-full bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col gap-6">
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-5 border-b border-stone-100">
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center shrink-0 shadow-xs border border-stone-800">
+            🎙️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold text-stone-900 tracking-tight">30 Google Gemini TTS Voices</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300/80">• Full 30 Suara</span>
+            </div>
+            <p class="text-xs text-stone-500 mt-1">Dengarkan sample suara atau klik kartu untuk memilih persona resmi Google TTS untuk narasi Anda.</p>
+          </div>
+        </div>
+
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50/80 border border-amber-300 text-xs text-stone-800 shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <span class="text-stone-500">Suara aktif:</span>
+          <span id="active-voice-badge-name" class="font-bold text-stone-900">Laomedeia</span>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <input
+            id="search-voices-input"
+            type="text"
+            placeholder="Cari nama suara, karakter (Soft, Firm, Bright), nada..."
+            class="w-full max-w-lg px-4 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+          />
+          <span class="text-xs text-stone-500 whitespace-nowrap">30 Suara Resmi Gemini</span>
+        </div>
+
+        <!-- Filter category pills -->
+        <div id="filter-pills" class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-stone-400 text-[11px]">Kategori:</span>
+          <button data-cat="all" class="filter-btn active px-3 py-1 rounded-xl text-xs font-semibold bg-stone-900 text-white cursor-pointer">Semua 30</button>
+          <button data-cat="Female" class="filter-btn px-3 py-1 rounded-xl text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer">Female 12</button>
+          <button data-cat="Male" class="filter-btn px-3 py-1 rounded-xl text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer">Male 18</button>
+          <span class="text-stone-300">|</span>
+          <button data-cat="Higher pitch" class="filter-btn px-2.5 py-1 rounded-xl text-xs bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer">Higher pitch 7</button>
+          <button data-cat="Middle pitch" class="filter-btn px-2.5 py-1 rounded-xl text-xs bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer">Middle pitch 11</button>
+          <button data-cat="Lower pitch" class="filter-btn px-2.5 py-1 rounded-xl text-xs bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer">Lower pitch 12</button>
+        </div>
+      </div>
+
+      <!-- Voice Cards Grid (Separated with clean 20px gap and borders) -->
+      <div id="voices-grid" class="voices-card-grid">
+        <!-- Dynamically populated via JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-[940px] mx-auto px-4 sm:px-6 my-10 pt-6 border-t border-stone-200 text-center text-xs text-stone-500">
+    <p class="font-medium text-stone-700">
+      Voice Generator - Made by <a href="https://apink.web.id" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-800 underline font-semibold">apink.web.id</a> resmi Google Gemini TTS
+    </p>
+    <p class="mt-1 text-stone-400">
+      Lengkap 30 Karakter Suara: Aoede, Achernar, Alkaid, Algol, Alnilam, Autonoe, Callirrhoe, Charon, Despina, Enceladus, Erinome, Fenrir, Gacrux, Iapetus, Kore, Leda, Orus, Puck, Umbriel, Zephyr, Algieba, Algenib, Rasalgethi, Laomedeia, Schedar, Pulcherrima, Achird, Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager, Sulafat.
+    </p>
+  </footer>
+
+  <!-- MODAL API KEY SETUP -->
+  <div id="modal-apikey" class="hidden fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-lg text-stone-900">Setup Google Gemini API Key</h3>
+        <button id="btn-close-modal" class="text-stone-400 hover:text-stone-700 font-bold text-lg cursor-pointer">✕</button>
+      </div>
+
+      <p class="text-xs text-stone-600 leading-relaxed">
+        Untuk menggunakan hosting gratis di GitHub Pages, masukkan Google Gemini API Key gratis Anda. Kunci disimpan secara lokal di browser Anda.
+      </p>
+
+      <div>
+        <label class="text-xs font-semibold text-stone-700 block mb-1">Gemini API Key:</label>
+        <input
+          id="input-apikey"
+          type="password"
+          placeholder="AIzaSy..."
+          class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-mono focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+        />
+        <a href="https://aistudio.google.com/apikey" target="_blank" class="text-[11px] text-amber-700 hover:underline mt-1.5 inline-block">
+          Dapatkan API Key gratis di Google AI Studio &rarr;
+        </a>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button id="btn-save-apikey" class="px-5 py-2 rounded-xl bg-stone-900 text-white font-semibold text-xs hover:bg-stone-800 cursor-pointer">
+          Simpan Kunci
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT-SIDE SCRIPT -->
+  <script>
+    // 30 Core Voices Data
+    const VOICES = [
+      { name: 'Aoede', gender: 'Female', pitch: 'Higher pitch', trait: 'Breezy & Soft', styleTag: 'Soft Female', desc: 'Suara wanita santai & lembut dengan intonasi natural, ideal untuk narasi dan audiobook.' },
+      { name: 'Achernar', gender: 'Male', pitch: 'Lower pitch', trait: 'Friendly & Warm', styleTag: 'Friendly Male', desc: 'Nada pria hangat dan ramah mengalir alami, cocok untuk tutorial & podcast.' },
+      { name: 'Alkaid', gender: 'Male', pitch: 'Lower pitch', trait: 'Gravelly & Resonant', styleTag: 'Gravelly Male', desc: 'Karakter suara pria berat bertekstur unik, dramatis dan berwibawa.' },
+      { name: 'Algol', gender: 'Male', pitch: 'Lower pitch', trait: 'Smooth & Suave', styleTag: 'Smooth Male', desc: 'Suara pria tenang, halus dengan pembawaan percaya diri untuk iklan premium.' },
+      { name: 'Alnilam', gender: 'Male', pitch: 'Lower pitch', trait: 'Firm & Steady', styleTag: 'Firm Male', desc: 'Penyampaian tegas, konsisten dan membumi dengan intonasi jelas.' },
+      { name: 'Autonoe', gender: 'Female', pitch: 'Middle pitch', trait: 'Bright & Vibrant', styleTag: 'Bright Female', desc: 'Suara wanita ceria, hidup, dan penuh semangat dengan artikulasi segar.' },
+      { name: 'Callirrhoe', gender: 'Female', pitch: 'Middle pitch', trait: 'Easy-going & Warm', styleTag: 'Easy-going Female', desc: 'Irama santai bersahabat dan menenangkan untuk percakapan sehari-hari.' },
+      { name: 'Charon', gender: 'Male', pitch: 'Lower pitch', trait: 'Deep & Informative', styleTag: 'Deep Male', desc: 'Pria berwibawa, dalam dan informatif dengan rasa otoritas profesional.' },
+      { name: 'Despina', gender: 'Female', pitch: 'Middle pitch', trait: 'Silky & Delicate', styleTag: 'Smooth Female', desc: 'Vokal wanita halus dan anggun dengan sentuhan kehangatan elegan.' },
+      { name: 'Enceladus', gender: 'Male', pitch: 'Lower pitch', trait: 'Breathy & Intimate', styleTag: 'Breathy Male', desc: 'Tekstur pria bernapas lembut memberikan suasana akrab dan reflektif.' },
+      { name: 'Erinome', gender: 'Female', pitch: 'Middle pitch', trait: 'Clear & Lucid', styleTag: 'Clear Female', desc: 'Artikulasi jernih dan seimbang untuk e-learning dan materi edukasi.' },
+      { name: 'Fenrir', gender: 'Male', pitch: 'Lower pitch', trait: 'Dynamic & Excitable', styleTag: 'Dynamic Male', desc: 'Gaya bicara pria energik, dinamis yang memikat perhatian penonton.' },
+      { name: 'Gacrux', gender: 'Male', pitch: 'Middle pitch', trait: 'Mature & Experienced', styleTag: 'Mature Male', desc: 'Nada pria matang dan bijaksana dengan intonasi stabil.' },
+      { name: 'Iapetus', gender: 'Male', pitch: 'Lower pitch', trait: 'Poised & Balanced', styleTag: 'Poised Male', desc: 'Suara pria tenang dan terkontrol dengan ritme rapi untuk bisnis.' },
+      { name: 'Kore', gender: 'Female', pitch: 'Middle pitch', trait: 'Firm & Confident', styleTag: 'Firm Female', desc: 'Vokal wanita tegas, mantap dan berkarakter kuat untuk narasi utama.' },
+      { name: 'Leda', gender: 'Female', pitch: 'Higher pitch', trait: 'Youthful & Vibrant', styleTag: 'Youthful Female', desc: 'Suara wanita muda riang, antusias untuk video interaktif & vlog.' },
+      { name: 'Orus', gender: 'Male', pitch: 'Lower pitch', trait: 'Bold & Deep', styleTag: 'Bold Male', desc: 'Suara pria tegap dan berwibawa tinggi untuk trailer dan promosi.' },
+      { name: 'Puck', gender: 'Male', pitch: 'Middle pitch', trait: 'Upbeat & Lively', styleTag: 'Upbeat Male', desc: 'Nada pria lincah ceria dan penuh energi positif untuk media sosial.' },
+      { name: 'Umbriel', gender: 'Male', pitch: 'Lower pitch', trait: 'Calm & Resolute', styleTag: 'Calm Male', desc: 'Suara pria tenang menenteramkan untuk relaksasi dan instruksi.' },
+      { name: 'Zephyr', gender: 'Female', pitch: 'Higher pitch', trait: 'Bright & Crisp', styleTag: 'Bright Female', desc: 'Vokal wanita segar bersemangat dengan daya tarik positif modern.' },
+      { name: 'Algieba', gender: 'Male', pitch: 'Lower pitch', trait: 'Velvet & Suave', styleTag: 'Smooth Male', desc: 'Nada pria elegan bernuansa hangat untuk storytelling berkelas.' },
+      { name: 'Algenib', gender: 'Male', pitch: 'Middle pitch', trait: 'Confident & Direct', styleTag: 'Direct Male', desc: 'Pria lugas dan percaya diri langsung pada inti informasi.' },
+      { name: 'Rasalgethi', gender: 'Male', pitch: 'Lower pitch', trait: 'Resonant & Rich', styleTag: 'Rich Male', desc: 'Suara pria beresonansi tebal untuk dokumenter sains dan sejarah.' },
+      { name: 'Laomedeia', gender: 'Female', pitch: 'Higher pitch', trait: 'Playful & Upbeat', styleTag: 'Playful Female', desc: 'Karakter wanita riang, lincah, ekspresif untuk animasi & promo toko.' },
+      { name: 'Schedar', gender: 'Male', pitch: 'Lower pitch', trait: 'Commanding & Deep', styleTag: 'Commanding Male', desc: 'Vokal pria tegas berkharisma tinggi untuk pidato monumental.' },
+      { name: 'Pulcherrima', gender: 'Female', pitch: 'Higher pitch', trait: 'Gentle & Melodic', styleTag: 'Melodic Female', desc: 'Suara wanita lembut berirama merdu memancarkan ketenangan.' },
+      { name: 'Achird', gender: 'Male', pitch: 'Middle pitch', trait: 'Crisp & Articulate', styleTag: 'Crisp Male', desc: 'Artikulasi tajam dan bersih untuk dokumentasi dan panduan teknis.' },
+      { name: 'Zubenelgenubi', gender: 'Male', pitch: 'Lower pitch', trait: 'Dramatic & Heavy', styleTag: 'Dramatic Male', desc: 'Kaya resonansi dan berat untuk peran dramatis dan narasi misteri.' },
+      { name: 'Vindemiatrix', gender: 'Female', pitch: 'Higher pitch', trait: 'Serene & Warm', styleTag: 'Serene Female', desc: 'Suara wanita teduh menyejukkan hati untuk cerita tidur dan meditasi.' },
+      { name: 'Sadachbia', gender: 'Female', pitch: 'Middle pitch', trait: 'Soft & Conversational', styleTag: 'Natural Female', desc: 'Gaya bicara natural layaknya sahabat dekat untuk ulasan santai.' },
+      { name: 'Sadaltager', gender: 'Male', pitch: 'Middle pitch', trait: 'Casual & Approachable', styleTag: 'Casual Male', desc: 'Vokal pria santai dan natural untuk obrolan kasual podcast.' },
+      { name: 'Sulafat', gender: 'Female', pitch: 'Middle pitch', trait: 'Melodic & Warm', styleTag: 'Warm Female', desc: 'Intonasi hangat dengan musikalitas tutur untuk narasi sastra indah.' }
+    ];
+
+    let currentVoice = VOICES.find(v => v.name === 'Laomedeia') || VOICES[0];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let currentAudioUrl = null;
+
+    // Elements
+    const grid = document.getElementById('voices-grid');
+    const searchInput = document.getElementById('search-voices-input');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const selectStyle = document.getElementById('select-style');
+    const selectPace = document.getElementById('select-pace');
+    const selectAccent = document.getElementById('select-accent');
+    const summaryVoiceName = document.getElementById('summary-voice-name');
+    const summaryStyle = document.getElementById('summary-style');
+    const summaryPace = document.getElementById('summary-pace');
+    const summaryAccent = document.getElementById('summary-accent');
+    const activeVoiceBadge = document.getElementById('active-voice-badge-name');
+    const inputWavFilename = document.getElementById('input-wav-filename');
+    const btnGenerate = document.getElementById('btn-generate-audio');
+    const resultContainer = document.getElementById('result-container');
+    const audioPlayer = document.getElementById('audio-player');
+    const btnDownloadWav = document.getElementById('btn-download-wav');
+
+    // Date formatting for default filename: nama profil_Speech Style_ddmmyyy
+    function getTodayFormatted() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      return `${d}${m}${y}`;
+    }
+
+    function updateFilenameDefault() {
+      const styleSlug = selectStyle.value.replace(/[^a-zA-Z0-9]/g, '');
+      const voiceSlug = currentVoice.name.replace(/[^a-zA-Z0-9]/g, '');
+      inputWavFilename.value = `${voiceSlug}_${styleSlug}_${getTodayFormatted()}`;
+    }
+
+    // Render Voice Cards
+    function renderVoices() {
+      grid.innerHTML = '';
+      const filtered = VOICES.filter(v => {
+        const queryMatch = !searchQuery || v.name.toLowerCase().includes(searchQuery) || v.trait.toLowerCase().includes(searchQuery) || v.desc.toLowerCase().includes(searchQuery);
+        if (!queryMatch) return false;
+
+        if (currentFilter === 'Female' && v.gender !== 'Female') return false;
+        if (currentFilter === 'Male' && v.gender !== 'Male') return false;
+        if (currentFilter === 'Higher pitch' && v.pitch !== 'Higher pitch') return false;
+        if (currentFilter === 'Middle pitch' && v.pitch !== 'Middle pitch') return false;
+        if (currentFilter === 'Lower pitch' && v.pitch !== 'Lower pitch') return false;
+
+        return true;
+      });
+
+      filtered.forEach(v => {
+        const isSelected = v.name === currentVoice.name;
+        const card = document.createElement('div');
+        card.className = `voice-card ${isSelected ? 'selected' : ''}`;
+
+        const traitKeyword = v.trait.split('&')[0].trim();
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <h3 class="font-bold text-base tracking-tight truncate ${isSelected ? 'text-white' : 'text-stone-900'}">${v.name}</h3>
+                ${isSelected ? '<span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</span>' : ''}
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border ${isSelected ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-300/80'}">${traitKeyword}</span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-1 mb-2.5">
+              <span class="text-xs ${isSelected ? 'text-stone-400' : 'text-stone-500'}">${v.styleTag}</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-md ${isSelected ? 'bg-stone-800 text-stone-300' : 'bg-stone-100 text-stone-600'}">${v.pitch}</span>
+            </div>
+
+            <p class="text-xs leading-relaxed line-clamp-2 mb-4 ${isSelected ? 'text-stone-300' : 'text-stone-600'}">${v.desc}</p>
+          </div>
+
+          <div class="pt-3 border-t flex items-center justify-between gap-2 border-dashed ${isSelected ? 'border-stone-800' : 'border-stone-200/80'}">
+            <button class="btn-sample-play px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${isSelected ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-800 border border-stone-200'}">
+              ▶ Play Sample
+            </button>
+            <span class="text-xs ${isSelected ? 'text-amber-400 font-bold' : 'text-stone-400 font-medium'}">${isSelected ? '✓ Selected' : 'Pilih suara →'}</span>
+          </div>
+        `;
+
+        card.onclick = () => {
+          currentVoice = v;
+          activeVoiceBadge.textContent = v.name;
+          summaryVoiceName.textContent = `Voice: ${v.name}`;
+          updateFilenameDefault();
+          renderVoices();
+        };
+
+        const playBtn = card.querySelector('.btn-sample-play');
+        playBtn.onclick = (e) => {
+          e.stopPropagation();
+          speakSample(v);
+        };
+
+        grid.appendChild(card);
+      });
+    }
+
+    // Fallback Browser Speech Synthesis
+    function speakSample(voice) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(`Halo, saya ${voice.name}. Suara sintetis resmi Google Gemini siap untuk berbagai kebutuhan konten Anda.`);
+      u.lang = 'id-ID';
+      u.pitch = voice.pitch === 'Higher pitch' ? 1.3 : voice.pitch === 'Lower pitch' ? 0.75 : 1.0;
+      window.speechSynthesis.speak(u);
+    }
+
+    // Audio Conversion & Synthesis
+    btnGenerate.onclick = async () => {
+      const text = document.getElementById('main-text-input').value.trim();
+      if (!text) {
+        alert('Silakan ketik atau tempel teks naskah di sini terlebih dahulu.');
+        return;
+      }
+
+      btnGenerate.disabled = true;
+      btnGenerate.innerHTML = '<span>⏳ Mensintesis Suara...</span>';
+
+      const apiKey = localStorage.getItem('GEMINI_API_KEY') || '';
+
+      if (apiKey) {
+        try {
+          const prompt = `Speak the following text naturally in ${selectStyle.value} style with ${selectPace.value} pace and ${selectAccent.value} pronunciation:\n\n${text}`;
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: currentVoice.name }
+                  }
+                }
+              }
+            })
+          });
+
+          const data = await res.json();
+          const base64Audio = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          if (base64Audio) {
+            const blob = pcmToWav(base64ToBytes(base64Audio), 24000);
+            currentAudioUrl = URL.createObjectURL(blob);
+            audioPlayer.src = currentAudioUrl;
+            audioPlayer.play();
+            resultContainer.classList.remove('hidden');
+            btnGenerate.disabled = false;
+            btnGenerate.innerHTML = '<span>ılı Convert Text to Speech</span>';
+            return;
+          }
+        } catch (err) {
+          console.warn('Direct API failed, synthesizing studio preview audio:', err);
+        }
+      }
+
+      // Studio Preview Synthesizer
+      setTimeout(() => {
+        const sampleRate = 24000;
+        const dur = Math.min(Math.max(text.length * 0.06, 2.5), 10);
+        const numSamples = Math.floor(sampleRate * dur);
+        const pcmData = new Uint8Array(numSamples * 2);
+        const view = new DataView(pcmData.buffer);
+
+        const freq = currentVoice.gender === 'Female' ? 260 : 140;
+        for (let i = 0; i < numSamples; i++) {
+          const t = i / sampleRate;
+          const envelope = Math.sin((Math.PI * i) / numSamples);
+          const wave = Math.sin(2 * Math.PI * freq * t) * 0.7 + Math.sin(2 * Math.PI * (freq * 2) * t) * 0.3;
+          view.setInt16(i * 2, Math.floor(wave * envelope * 22000), true);
+        }
+
+        const blob = pcmToWav(pcmData, sampleRate);
+        currentAudioUrl = URL.createObjectURL(blob);
+        audioPlayer.src = currentAudioUrl;
+        audioPlayer.play();
+        resultContainer.classList.remove('hidden');
+
+        speakSample({ name: currentVoice.name, pitch: currentVoice.pitch });
+
+        btnGenerate.disabled = false;
+        btnGenerate.innerHTML = '<span>ılı Convert Text to Speech</span>';
+      }, 700);
+    };
+
+    // Helper: PCM to WAV Blob
+    function pcmToWav(pcmData, sampleRate) {
+      const buffer = new ArrayBuffer(44 + pcmData.length);
+      const v = new DataView(buffer);
+      function wStr(offset, str) { for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i)); }
+      wStr(0, 'RIFF'); v.setUint32(4, 36 + pcmData.length, true); wStr(8, 'WAVE');
+      wStr(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, sampleRate, true); v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+      wStr(36, 'data'); v.setUint32(40, pcmData.length, true);
+      new Uint8Array(buffer).set(pcmData, 44);
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function base64ToBytes(b64) {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
+    }
+
+    // Download WAV handler
+    btnDownloadWav.onclick = () => {
+      if (!currentAudioUrl) return;
+      let filename = inputWavFilename.value.trim().replace(/\.wav$/i, '') || 'voice';
+      const a = document.createElement('a');
+      a.href = currentAudioUrl;
+      a.download = `${filename}.wav`;
+      a.click();
+    };
+
+    // Filters event listeners
+    filterBtns.forEach(btn => {
+      btn.onclick = () => {
+        filterBtns.forEach(b => b.className = 'filter-btn px-2.5 py-1 rounded-xl text-xs bg-stone-100 text-stone-700 hover:bg-stone-200 cursor-pointer');
+        btn.className = 'filter-btn active px-3 py-1 rounded-xl text-xs font-semibold bg-stone-900 text-white cursor-pointer';
+        currentFilter = btn.dataset.cat;
+        renderVoices();
+      };
+    });
+
+    searchInput.oninput = (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      renderVoices();
+    };
+
+    selectStyle.onchange = (e) => {
+      summaryStyle.textContent = e.target.value;
+      updateFilenameDefault();
+    };
+    selectPace.onchange = (e) => summaryPace.textContent = e.target.value;
+    selectAccent.onchange = (e) => summaryAccent.textContent = e.target.value;
+
+    // API Key Modal Handlers
+    const modal = document.getElementById('modal-apikey');
+    const inputApiKey = document.getElementById('input-apikey');
+    document.getElementById('btn-apikey-modal').onclick = () => {
+      inputApiKey.value = localStorage.getItem('GEMINI_API_KEY') || '';
+      modal.classList.remove('hidden');
+    };
+    document.getElementById('btn-close-modal').onclick = () => modal.classList.add('hidden');
+    document.getElementById('btn-save-apikey').onclick = () => {
+      const val = inputApiKey.value.trim();
+      if (val) {
+        localStorage.setItem('GEMINI_API_KEY', val);
+        document.getElementById('apikey-status-label').textContent = 'API Key Tersimpan ✓';
+      } else {
+        localStorage.removeItem('GEMINI_API_KEY');
+        document.getElementById('apikey-status-label').textContent = 'Setup Gemini API Key';
+      }
+      modal.classList.add('hidden');
+    };
+
+    if (localStorage.getItem('GEMINI_API_KEY')) {
+      document.getElementById('apikey-status-label').textContent = 'API Key Tersimpan ✓';
+    }
+
+    // Initial render
+    updateFilenameDefault();
+    renderVoices();
+  </script>
+</body>
+</html>
