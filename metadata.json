@@ -1,0 +1,6 @@
+{
+  "name": "YMD Voice - Google Gemini TTS Studio",
+  "description": "Generator Text-to-Speech modern berbasis Google Gemini TTS dengan 30 suara resmi berkualitas studio, kontrol nada, pratinjau audio interaktif, dan ekspor audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
