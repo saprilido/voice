@@ -4,26 +4,9 @@ Generator voice over berbasis Google Gemini TTS: 30 suara, kontrol gaya/tempo/ak
 
 Dibuat oleh [apink.web.id](https://apink.web.id).
 
-## Pasang di Cloudflare Pages (dari GitHub)
-
-1. Di Cloudflare: **Workers & Pages → Create → Pages → Connect to Git**, pilih repo ini.
-2. Isi pengaturan build:
-   - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-3. Buka **Settings → Variables and Secrets → Add**:
-   - Name: `GEMINI_API_KEY`
-   - Value: key Gemini Anda (pilih **Encrypt / Secret**)
-   - Tambahkan untuk **Production** (dan **Preview** bila perlu), lalu **deploy ulang**.
-4. Di **Custom domains**, tambahkan subdomain Anda.
-
-Key Anda hanya tersimpan di Cloudflare, tidak pernah masuk ke GitHub maupun ke browser pengunjung.
-
 ## Cara kerja API key
 
-- **Key Anda (server):** dipakai otomatis. Dibatasi 20 permintaan per 10 menit per pengunjung dan 3000 karakter per teks agar kuota tidak habis disalahgunakan.
 - **Key pengunjung (opsional):** pengunjung bisa memasukkan key sendiri lewat tombol **Kunci API**. Tidak dibatasi dan tidak memakai kuota Anda.
-
-Untuk perlindungan lebih kuat, aktifkan **Security → WAF → Rate limiting rules** di Cloudflare untuk path `/api/*`.
 
 ## Pengaturan tambahan (opsional, di Variables and Secrets)
 
