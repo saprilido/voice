@@ -83,6 +83,7 @@ async function callGemini(apiKey: string, model: string, payload: unknown): Prom
 
 export async function synthesize(env: Env, apiKey: string, text: string, voice: string, style: string) {
   let lastError: unknown;
+  let quotaError: unknown;
   for (const model of ttsModels(env)) {
     try {
       const data = await callGemini(apiKey, model, {
@@ -94,11 +95,14 @@ export async function synthesize(env: Env, apiKey: string, text: string, voice: 
       });
       const audio = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (audio) return { audioData: audio as string, model };
-    } catch (err) {
+    } catch (err: any) {
       lastError = err;
+      if (/quota|RESOURCE_EXHAUSTED|rate.?limit|\b429\b/i.test(err?.message || '')) quotaError = err;
     }
   }
-  throw lastError instanceof Error ? lastError : new Error('Semua model TTS gagal.');
+  // Jika salah satu model kena batas kuota, laporkan itu (jangan tertimpa error model lain).
+  const finalError = quotaError || lastError;
+  throw finalError instanceof Error ? finalError : new Error('Semua model TTS gagal.');
 }
 
 export async function generateText(env: Env, apiKey: string, prompt: string): Promise<string | undefined> {
@@ -112,11 +116,17 @@ export async function pingKey(env: Env, apiKey: string) {
   await callGemini(apiKey, textModel(env), { contents: [{ role: 'user', parts: [{ text: 'Ping' }] }] });
 }
 
-export function describeError(err: any): string {
+// Mengubah error dari Gemini menjadi respons JSON yang jelas.
+// Catatan: sengaja tidak memakai status 502/504 karena Cloudflare mengganti isinya dengan halaman HTML.
+export function errorResponse(err: any): Response {
   const msg: string = err?.message || '';
-  if (/quota|RESOURCE_EXHAUSTED|429/i.test(msg)) return 'Kuota Gemini API habis. Coba lagi nanti atau gunakan API Key sendiri.';
-  if (/API key|API_KEY_INVALID|PERMISSION_DENIED|403|401/i.test(msg)) return 'Gemini API Key tidak valid atau tidak punya akses ke model TTS.';
-  return 'Gagal membuat suara. Silakan coba lagi.';
+  if (/quota|RESOURCE_EXHAUSTED|rate.?limit|\b429\b/i.test(msg)) {
+    return json({ error: 'Kuota Gemini API habis. Coba lagi nanti atau gunakan API Key sendiri.', code: 'QUOTA_EXHAUSTED' }, 429);
+  }
+  if (/API key|API_KEY_INVALID|PERMISSION_DENIED|\b40[13]\b/i.test(msg)) {
+    return json({ error: 'Gemini API Key tidak valid atau tidak punya akses ke model TTS.', code: 'INVALID_KEY' }, 401);
+  }
+  return json({ error: 'Gagal membuat suara. Silakan coba lagi.', code: 'UPSTREAM_ERROR' }, 424);
 }
 
 // Pembatas laju sederhana (best-effort, per instance server) — hanya untuk key milik pemilik.

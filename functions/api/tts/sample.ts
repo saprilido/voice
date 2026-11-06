@@ -1,4 +1,4 @@
-import { json, getUserKey, limited, limitMessage, synthesize, describeError, VOICE_SAMPLES, type Ctx } from '../_shared';
+import { json, getUserKey, limited, limitMessage, synthesize, errorResponse, VOICE_SAMPLES, type Ctx } from '../_shared';
 
 export async function onRequestGet({ request, env }: Ctx) {
   const url = new URL(request.url);
@@ -16,6 +16,6 @@ export async function onRequestGet({ request, env }: Ctx) {
     const { audioData, model } = await synthesize(env, apiKey, info.phrase, voice, 'Clear, natural, expressive voice presentation');
     return json({ success: true, audioData, audioBase64: audioData, model, sampleRate: 24000, voice });
   } catch (err: any) {
-    return json({ error: describeError(err) }, 502);
+    return errorResponse(err);
   }
 }
