@@ -12,6 +12,8 @@ import { VoiceCustomization } from './components/VoiceCustomization';
 import { AmbientSoundControl } from './components/AmbientSoundControl';
 import { MomentLibrary } from './components/MomentLibrary';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { QuotaModal } from './components/QuotaModal';
+import { notifyQuotaExhausted } from './utils/quota';
 import {
   DEFAULT_MOMENT,
   MomentItem,
@@ -162,6 +164,9 @@ export default function App() {
       });
 
       const data = await res.json();
+      if (data?.code === 'QUOTA_EXHAUSTED') {
+        notifyQuotaExhausted();
+      }
       if (!res.ok || data.error) {
         throw new Error(data.error || 'Failed to convert text to speech');
       }
@@ -483,6 +488,9 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {/* Popup kuota habis */}
+      <QuotaModal onOpenApiKey={() => setIsApiKeyModalOpen(true)} />
 
       {/* API Key Modal */}
       <ApiKeyModal

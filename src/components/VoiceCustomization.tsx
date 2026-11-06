@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { notifyQuotaExhausted } from '../utils/quota';
 import {
   Mic,
   Radio,
@@ -133,6 +134,9 @@ export const VoiceCustomization: React.FC<VoiceCustomizationProps> = ({
       const res = await fetch(`/api/tts/sample?voice=${encodeURIComponent(voiceId)}`, { headers });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        if (data?.code === 'QUOTA_EXHAUSTED') {
+          notifyQuotaExhausted();
+        }
         throw new Error(data.error || `HTTP ${res.status}`);
       }
       const data = await res.json();
